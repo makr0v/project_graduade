@@ -1,0 +1,15 @@
+version: "3.9"
+
+name: "client"
+
+services:
+  app:
+    image: node:latest
+    volumes:
+      - ./:/app
+      - ../.env:/app/.env
+    hostname: ${CLIENT_HOST}
+    ports:
+      - ${CLIENT_PORT}:3000
+    working_dir: /app
+    command: "npm run deploy"

@@ -1,0 +1,13 @@
+.idea
+docker
+
+client/.idea
+client/.env
+client/.swc
+client/dist
+client/node_modules
+
+
+server/.idea
+server/.env
+server/node_modules
