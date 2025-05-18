@@ -1,1 +1,1 @@
-export const API_URL = 'https://319c9c6e-a331-402a.webway.studio/api';
+export const API_URL = 'http://185.251.91.4:9001/api';
