@@ -10,6 +10,6 @@ services:
       - ../.env:/app/.env
     hostname: ${CLIENT_HOST}
     ports:
-      - ${CLIENT_PORT}:3000
+      - 127.0.0.1:3000:3000
     working_dir: /app
     command: "npm run deploy"
