@@ -22,8 +22,8 @@ const AboutPage = () => {
               </h2>
               <p className="text-gray-600 mb-4">
                 Компания «Детский Гардероб» была основана в 2025 году группой
-                молодых родителей, которые столкнулись с проблемой поиска
-                качественной и стильной одежды для своих детей.
+                молодых людей, которые решили проблему поиска
+                качественной и стильной одежды для детей.
               </p>
               <p className="text-gray-600 mb-4">
                 Начав с небольшого ассортимента, мы быстро выросли и сегодня
@@ -91,52 +91,50 @@ const AboutPage = () => {
               консультанты всегда готовы помочь с выбором и ответить на все
               вопросы.
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-2">
                   <img
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Anna"
-                    alt="Анна Иванова"
+                    src="https://api.dicebear.com/9.x/lorelei/svg?seed=maximus"
+                    alt="Нестеров Максим"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h4 className="font-medium">Анна Иванова</h4>
-                <p className="text-sm text-gray-500">Основатель и CEO</p>
+                <h4 className="font-medium">Нестеров Максим</h4>
+                <p className="text-sm text-gray-500">Бэкенд разработчик</p>
               </div>
               <div className="text-center">
                 <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-2">
                   <img
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mikhail"
-                    alt="Михаил Петров"
+                    src="https://api.dicebear.com/9.x/lorelei/svg?seed=vital"
+                    alt="Мельник Виталий"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h4 className="font-medium">Михаил Петров</h4>
-                <p className="text-sm text-gray-500">Директор по закупкам</p>
+                <h4 className="font-medium">Мельник Виталий</h4>
+                <p className="text-sm text-gray-500">Фронтенд разработчик</p>
               </div>
               <div className="text-center">
                 <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-2">
                   <img
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Elena"
-                    alt="Елена Смирнова"
+                    src="https://api.dicebear.com/9.x/lorelei/svg?seed=dania"
+                    alt="Караго Даниил"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h4 className="font-medium">Елена Смирнова</h4>
-                <p className="text-sm text-gray-500">Главный дизайнер</p>
+                <h4 className="font-medium">Караго Даниил</h4>
+                <p className="text-sm text-gray-500">Тестировщик</p>
               </div>
               <div className="text-center">
                 <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-2">
                   <img
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sergey"
-                    alt="Сергей Козлов"
+                    src="https://api.dicebear.com/9.x/lorelei/svg?seed=mishapunin"
+                    alt="Пунин Михаил"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h4 className="font-medium">Сергей Козлов</h4>
-                <p className="text-sm text-gray-500">
-                  Руководитель службы поддержки
-                </p>
+                <h4 className="font-medium">Пунин Михаил</h4>
+                <p className="text-sm text-gray-500">Тимлид</p>
               </div>
             </div>
           </div>
@@ -148,7 +146,7 @@ const AboutPage = () => {
             <ul className="list-disc pl-5 space-y-2 text-gray-600">
               <li>Более 50 000 довольных клиентов по всей России</li>
               <li>
-                Награда «Лучший интернет-магазин детской одежды 2022 года»
+                Награда «Лучший интернет-магазин детской одежды 2025 года»
               </li>
               <li>
                 Сотрудничество с ведущими российскими и зарубежными брендами

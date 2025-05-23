@@ -163,7 +163,7 @@ const Footer = () => {
               <li className="flex items-center space-x-2">
                 <MapPin size={18} className="text-slate-600" />
                 <span className="text-slate-600">
-                  г. Москва, ул. Примерная, д. 123
+                  г. Санкт-Петербург
                 </span>
               </li>
             </ul>

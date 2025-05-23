@@ -3,6 +3,10 @@ import {Group, mapServerProduct, Product, ServerProduct} from "@/entities";
 import {API_URL} from "@/config.ts";
 import {useFilters} from "@/context/FilterContext.tsx";
 
+// Helper function to calculate discounted price
+const getDiscountedPrice = (price: number, discount: number) => {
+  return Math.round(price * (1 - discount / 100));
+};
 
 interface CatalogContext {
   products: Product[];
@@ -41,11 +45,12 @@ export const CatalogProvider: FC<PropsWithChildren> = ({
             let colors: string[][] = [];
 
             data.products.forEach(i => {
-              if (i.price > max) {
-                max = i.price;
+              const discountedPrice = getDiscountedPrice(i.price, i.discount || 0);
+              if (discountedPrice > max) {
+                max = discountedPrice;
               }
-              if (i.price < min) {
-                min = i.price;
+              if (discountedPrice < min) {
+                min = discountedPrice;
               }
               if (i.age) {
                 ages.push(i.age)
@@ -68,12 +73,10 @@ export const CatalogProvider: FC<PropsWithChildren> = ({
               colors: Array.from(new Set(colors.flatMap(i => i))),
               priceRange: [min, max],
             })
-            setFilters({
-              priceRange: [min, max],
-              age: ages[0],
-              season: seasons[0],
-              sizes: []
-            })
+            setFilters(prev => ({
+              ...prev,
+              priceRange: [min, max]
+            }))
             setProducts(data.products.map(mapServerProduct))
           }),
       fetch(API_URL + `/v1/groups?variant=category`)

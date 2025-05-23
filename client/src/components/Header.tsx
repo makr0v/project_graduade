@@ -28,11 +28,13 @@ import { Product } from "@/entities";
 type Props = {
   logoText?: string;
   isLoggedIn?: boolean;
+  onSearchSubmit?: (searchTerm: string) => void;
 }
 
 const Header: FC<Props> = ({
   logoText = "Детский Гардероб",
   isLoggedIn = false,
+  onSearchSubmit
 }) => {
   const { totalItems } = useCart();
   const [searchTerm, setSearchTerm] = useState("");
@@ -76,6 +78,7 @@ const Header: FC<Props> = ({
     if (searchTerm.trim()) {
       setShowResults(false);
       navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+      onSearchSubmit?.(searchTerm);
     }
   };
 

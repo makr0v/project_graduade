@@ -1,51 +1,37 @@
-import { FC, useState, MouseEvent } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, { FC } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "./ui/button";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { useFilters } from "../context/FilterContext";
-import {Group} from "@/entities/group.ts";
+} from "./ui/carousel";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Group } from "@/entities";
 
 interface BannerCarouselProps {
-  banners?: Group[];
+  banners: Group[];
 }
 
 const BannerCarousel: FC<BannerCarouselProps> = ({
   banners = [],
 }) => {
   const navigate = useNavigate();
-  const { setFilters } = useFilters();
-  const [activeIndex, setActiveIndex] = useState(0);
 
-  const handleBannerClick = (
-    banner: (typeof banners)[0],
-    e: MouseEvent,
-  ) => {
+  const handleBannerClick = (banner: Group, e: React.MouseEvent) => {
     e.preventDefault();
-
-    // Apply filters based on banner
-    const newFilters: Record<string, string> = {};
-
-    setFilters(prevState => ({
-      ...prevState,
-      ...newFilters
-    }));
-
-    // Navigate to home with hash to scroll to products
-    navigate("/#products");
-
-    // Scroll to products section
-    const productsSection = document.getElementById("products");
-    if (productsSection) {
-      productsSection.scrollIntoView({ behavior: "smooth" });
+    if (banner.variant === 'collection') {
+      navigate(`/collection/${banner.slug}`);
+    } else if (banner.variant === 'category') {
+      navigate(`/category/${banner.slug}`);
     }
   };
+
+  if (!banners.length) {
+    return null;
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-white">
@@ -85,17 +71,6 @@ const BannerCarousel: FC<BannerCarouselProps> = ({
         <CarouselNext className="right-4 bg-white/80 hover:bg-white">
           <ChevronRight className="h-6 w-6" />
         </CarouselNext>
-
-        {/* Carousel indicators */}
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-          {banners.map((banner, index) => (
-            <div
-              key={`indicator-${banner.id}`}
-              className={`w-2 h-2 rounded-full cursor-pointer transition-all ${activeIndex === index ? "bg-white w-4" : "bg-white/50"}`}
-              onClick={() => setActiveIndex(index)}
-            />
-          ))}
-        </div>
       </Carousel>
     </div>
   );

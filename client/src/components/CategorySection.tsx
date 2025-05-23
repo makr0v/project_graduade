@@ -20,7 +20,11 @@ const CategoryItem: FC<CategoryItemProps> = (props) => {
       <div
         className={`bg-pink-100 w-24 h-24 md:w-32 md:h-32 rounded-full flex items-center justify-center mb-3 transition-transform group-hover:scale-110 relative overflow-hidden`}
       >
-        <img src={props.name} alt={props.name} className="w-14 h-14 md:w-20 md:h-20" />
+        <img 
+          src={props.image} 
+          alt={props.name} 
+          className="w-full h-full object-cover absolute inset-0" 
+        />
       </div>
       <span className="text-sm md:text-base font-medium text-gray-800 text-center">
         {props.name}

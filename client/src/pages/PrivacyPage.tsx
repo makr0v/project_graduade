@@ -18,7 +18,7 @@ const PrivacyPage = () => {
 
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8">
             <p className="text-blue-700">
-              Последнее обновление: 15 мая 2023 г. Настоящая Политика
+              Последнее обновление: 15 мая 2025 г. Настоящая Политика
               конфиденциальности описывает, как ООО «Детский Гардероб» собирает,
               использует и раскрывает вашу информацию при использовании нашего
               веб-сайта и услуг.
@@ -192,8 +192,7 @@ const PrivacyPage = () => {
                   <span className="font-medium">ООО «Детский Гардероб»</span>
                 </li>
                 <li>
-                  <span className="font-medium">Адрес:</span> г. Москва, ул.
-                  Примерная, д. 123, офис 456
+                  <span className="font-medium">Адрес:</span> г. Санкт-Петербург
                 </li>
                 <li>
                   <span className="font-medium">Email:</span>{" "}

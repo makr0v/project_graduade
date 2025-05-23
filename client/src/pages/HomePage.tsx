@@ -6,6 +6,7 @@ import CategorySection from "@/components/CategorySection.tsx";
 import ProductGrid from "@/components/ProductGrid.tsx";
 import Footer from "@/components/Footer.tsx";
 import {useCatalog} from "@/context/CatalogContext.tsx";
+import {API_URL} from "@/config";
 
 const HomePage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState<string>("");
@@ -34,8 +35,28 @@ const HomePage: React.FC = () => {
         }
     };
 
-    const handleSummerCollectionClick = () => {
-        navigate("/category/summer");
+    const handleSummerCollectionClick = async () => {
+        try {
+            // Получаем список всех коллекций с сервера
+            const response = await fetch(`${API_URL}/v1/groups?variant=collection`);
+            const data = await response.json();
+            
+            // Ищем летнюю коллекцию
+            const summerCollection = data.groups.find((c: any) => 
+                c.name.toLowerCase().includes('летн') || 
+                c.name.toLowerCase().includes('summer')
+            );
+
+            if (summerCollection) {
+                navigate(`/collection/${summerCollection.slug}`);
+            } else {
+                // Если коллекция не найдена, перенаправляем на общий каталог
+                navigate('/catalog');
+            }
+        } catch (error) {
+            console.error('Error fetching collections:', error);
+            navigate('/catalog');
+        }
     };
 
     return (
@@ -63,17 +84,17 @@ const HomePage: React.FC = () => {
                         <div className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl p-8 flex flex-col md:flex-row items-center justify-between">
                             <div className="mb-6 md:mb-0 md:mr-6">
                                 <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-3">
-                                    Новая летняя коллекция
+                                    Полный каталог товаров
                                 </h2>
                                 <p className="text-gray-700 mb-4 max-w-md">
-                                    Легкие и яркие наряды для самых активных летних приключений
+                                    Легкие и яркие наряды для
                                     вашего ребенка.
                                 </p>
                                 <button
                                     onClick={handleSummerCollectionClick}
                                     className="bg-pink-600 hover:bg-pink-700 text-white font-medium py-2 px-6 rounded-full transition-colors"
                                 >
-                                    Смотреть коллекцию
+                                    Смотреть каталог
                                 </button>
                             </div>
                             <div className="w-full md:w-1/2 lg:w-1/3">

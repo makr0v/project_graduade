@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Button } from "../components/ui/button";
@@ -29,13 +29,19 @@ import {Product} from "@/entities";
 const ProductPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToCart } = useCart();
-  const catalog = useCatalog()
+  const catalog = useCatalog();
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [isAdded, setIsAdded] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+
+  // Сброс прокрутки при монтировании компонента
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [productId]);
 
   useEffect(() => {
     const expectedProduct = catalog.products.find(i => i.slug === productId)
@@ -64,6 +70,17 @@ const ProductPage: React.FC = () => {
         .filter(i => i.id !== expectedProduct.id && i.groups.filter(i => productGroupIds.includes(i.id)).length)
     setRelatedProducts(allRelatedProducts)
   }, [productId, navigate]);
+
+  const handleGoBack = () => {
+    // Проверяем, пришли ли мы из каталога или другой страницы сайта
+    if (location.key === "default" || !location.state) {
+      // Если нет истории или состояния, идем на главную
+      navigate("/");
+    } else {
+      // Иначе возвращаемся назад
+      navigate(-1);
+    }
+  };
 
   if (!product) {
     return null;
@@ -97,7 +114,7 @@ const ProductPage: React.FC = () => {
         <Button
           variant="ghost"
           className="mb-6 flex items-center gap-2"
-          onClick={() => navigate(-1)}
+          onClick={handleGoBack}
         >
           <ArrowLeft className="h-4 w-4" />
           Вернуться назад
@@ -251,7 +268,10 @@ const ProductPage: React.FC = () => {
                 <div key={relatedProduct.id} className="flex justify-center">
                   <div
                     className="cursor-pointer"
-                    onClick={() => navigate(`/product/${relatedProduct.id}`)}
+                    onClick={() => {
+                      window.scrollTo(0, 0); // Прокручиваем страницу вверх перед переходом
+                      navigate(`/product/${relatedProduct.slug}`);
+                    }}
                   >
                     <img
                       src={relatedProduct.image}

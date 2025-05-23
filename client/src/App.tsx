@@ -8,6 +8,7 @@ import CategoryPage from "./pages/CategoryPage";
 import ProductPage from "./pages/ProductPage";
 import CatalogPage from "./pages/CatalogPage";
 import SearchPage from "./pages/SearchPage";
+import CollectionPage from "./pages/CollectionPage";
 import { CartProvider } from "./context/CartContext";
 import { FilterProvider } from "./context/FilterContext";
 import AboutPage from "./pages/AboutPage";
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/catalog" element={<CatalogPage />} />
                 <Route path="/category/:categoryId" element={<CategoryPage />} />
+                <Route path="/collection/:collectionId" element={<CollectionPage />} />
                 <Route path="/product/:productId" element={<ProductPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/about" element={<AboutPage />} />

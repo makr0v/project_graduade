@@ -1,6 +1,11 @@
 import {createContext, Dispatch, FC, PropsWithChildren, SetStateAction, useContext, useState} from "react";
 import {Product} from "@/entities";
 
+// Helper function to calculate discounted price
+const getDiscountedPrice = (price: number, discount: number) => {
+  return Math.round(price * (1 - (discount || 0) / 100));
+};
+
 type FilterStateParam<T> = 'all' | T;
 export type FilterState = {
   priceRange: [min: number, max: number];
@@ -29,6 +34,8 @@ type FilterContextType = {
   setFilters: Dispatch<SetStateAction<FilterState>>;
   resetFilters: () => void;
   applyFilters: (products: Product[]) => Product[];
+  isFiltersApplied: boolean;
+  setIsFiltersApplied: Dispatch<SetStateAction<boolean>>;
 }
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
 export const FilterProvider: FC<PropsWithChildren> = ({ children }) => {
@@ -40,18 +47,24 @@ export const FilterProvider: FC<PropsWithChildren> = ({ children }) => {
     colors: []
   });
   const [filters, setFilters] = useState<FilterState>(_defaultFilters);
+  const [isFiltersApplied, setIsFiltersApplied] = useState(false);
 
   const resetFilters = () => {
     setFilters(_defaultFilters);
+    setIsFiltersApplied(false);
   };
 
   const applyFilters = (products: Product[]): Product[] => {
+    if (!isFiltersApplied) {
+      return products;
+    }
+
     return products.filter((product) => {
-      // Filter by price range
-      if (
-        product.price < filters.priceRange[0] ||
-        product.price > filters.priceRange[1]
-      ) {
+      // Calculate actual price with discount
+      const actualPrice = getDiscountedPrice(product.price, product.discount);
+
+      // Filter by price range using actual discounted price
+      if (actualPrice < filters.priceRange[0] || actualPrice > filters.priceRange[1]) {
         return false;
       }
 
@@ -93,6 +106,8 @@ export const FilterProvider: FC<PropsWithChildren> = ({ children }) => {
         setFilters,
         resetFilters,
         applyFilters,
+        isFiltersApplied,
+        setIsFiltersApplied
       }}
     >
       {children}

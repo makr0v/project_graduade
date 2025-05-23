@@ -24,50 +24,55 @@ const ProductGrid: FC<Props> = ({
 }) => {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+  const [isAnimating, setIsAnimating] = useState(false);
   const { filters, resetFilters, applyFilters } = useFilters();
 
-  // Apply filters and search whenever they change
+  // Apply all filters whenever they change
   useEffect(() => {
+    setIsAnimating(true);
+    
+    // Небольшая задержка перед применением фильтров для плавной анимации исчезновения
+    setTimeout(() => {
+      // Start with the base products
+      let filtered = products;
 
-    setFilteredProducts(filterByCategoryId
-        ? products
-            .filter(i => i.groups.filter(i => i.variant === GroupVariant.Category && i.id === filterByCategoryId).length)
-        : products
-    )
-  }, [products])
-  useEffect(() => {
-    let filtered = applyFilters(products);
+      // Apply category filter if specified
+      if (filterByCategoryId) {
+        filtered = filtered.filter((product) =>
+          product.groups.some(group => 
+            group.variant === GroupVariant.Category && 
+            group.id === filterByCategoryId
+          )
+        );
+      }
 
-    // Apply category filter if specified
-    if (filterByCategoryId) {
-      filtered = filtered.filter((product) => {
-        // Filter for boys products (either explicitly marked or by category)
-        return product.groups
-          .filter(i => i.id === filterByCategoryId)
-          .length > 0
-      });
+      // Apply user-selected filters (price, age, season, size)
+      filtered = applyFilters(filtered);
 
-    }
+      // Apply search filter if searchTerm exists
+      if (searchTerm && searchTerm.trim() !== "") {
+        const term = searchTerm.toLowerCase().trim();
+        filtered = filtered.filter(
+          (product) =>
+            (product.name.toLowerCase().includes(term)) ||
+            (product.season && product.season.toLowerCase().includes(term)) ||
+            (product.age && product.age.toLowerCase().includes(term)),
+        );
+      }
 
-    // Apply search filter if searchTerm exists
-    if (searchTerm && searchTerm.trim() !== "") {
-      const term = searchTerm.toLowerCase().trim();
-      filtered = filtered.filter(
-        (product) =>
-          (product.name.toLowerCase().includes(term)) ||
-          (product.season && product.season.toLowerCase().includes(term)) ||
-          (product.age && product.age.toLowerCase().includes(term)),
-      );
-    }
-
-    setFilteredProducts(filtered);
-
-
+      setFilteredProducts(filtered);
+      
+      // Задержка перед появлением новых товаров
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 150);
+    }, 150);
   }, [
     filters,
     products,
     searchTerm,
     filterByCategoryId,
+    applyFilters
   ]);
 
   const toggleFilters = () => {
@@ -76,7 +81,6 @@ const ProductGrid: FC<Props> = ({
 
   const handleResetFilters = () => {
     resetFilters();
-    setFilteredProducts(products);
   };
 
   return (
@@ -114,7 +118,11 @@ const ProductGrid: FC<Props> = ({
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {filteredProducts.map((product) => (
-            <div key={product.id} className="flex justify-center">
+            <div 
+              key={product.id} 
+              className={`flex justify-center transition-all duration-300 ease-in-out transform
+                ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+            >
               <ProductCard
                 slug={product.slug}
                 id={product.id}
@@ -132,7 +140,7 @@ const ProductGrid: FC<Props> = ({
         </div>
 
         {filteredProducts.length === 0 && (
-          <div className="my-12 text-center">
+          <div className={`my-12 text-center transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
             <p className="text-lg text-gray-500">
               По вашему запросу ничего не найдено. Попробуйте изменить параметры
               фильтрации.

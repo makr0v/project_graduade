@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Slider } from "./ui/slider";
 import { Checkbox } from "./ui/checkbox";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import {
   Select,
   SelectContent,
@@ -11,7 +13,15 @@ import {
 import { useFilters } from "../context/FilterContext";
 
 const ProductFilters = () => {
-  const { options, filters, setFilters } = useFilters();
+  const { options, filters, setFilters, setIsFiltersApplied } = useFilters();
+  const [minPriceInput, setMinPriceInput] = useState(filters.priceRange[0].toString());
+  const [maxPriceInput, setMaxPriceInput] = useState(filters.priceRange[1].toString());
+
+  // Синхронизируем значения инпутов при изменении фильтров извне
+  useEffect(() => {
+    setMinPriceInput(filters.priceRange[0].toString());
+    setMaxPriceInput(filters.priceRange[1].toString());
+  }, [filters.priceRange]);
 
   const handleAgeChange = (value: string) => {
     setFilters(prevState => ({
@@ -19,18 +29,58 @@ const ProductFilters = () => {
       age: value
     }));
   };
+
   const handleSeasonChange = (value: string) => {
     setFilters(prevState => ({
       ...prevState,
       season: value
     }));
   };
+
   const handlePriceChange = (value: number[]) => {
+    const [min, max] = value;
+    setMinPriceInput(min.toString());
+    setMaxPriceInput(max.toString());
     setFilters(prevState => ({
       ...prevState,
-      priceRange: [value[0], value[1]] as [number, number],
+      priceRange: [min, max] as [number, number],
     }));
   };
+
+  const handleMinPriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setMinPriceInput(value);
+    if (value === '') return;
+    
+    const numValue = Math.max(0, parseInt(value));
+    if (!isNaN(numValue)) {
+      setFilters(prevState => ({
+        ...prevState,
+        priceRange: [
+          Math.min(numValue, prevState.priceRange[1]), 
+          prevState.priceRange[1]
+        ] as [number, number],
+      }));
+    }
+  };
+
+  const handleMaxPriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setMaxPriceInput(value);
+    if (value === '') return;
+    
+    const numValue = parseInt(value);
+    if (!isNaN(numValue)) {
+      setFilters(prevState => ({
+        ...prevState,
+        priceRange: [
+          prevState.priceRange[0],
+          Math.max(numValue, prevState.priceRange[0])
+        ] as [number, number],
+      }));
+    }
+  };
+
   const handleSizeChange = (size: string, checked: boolean) => {
     setFilters(prevState => ({
       ...prevState,
@@ -38,6 +88,18 @@ const ProductFilters = () => {
           ? [...filters.sizes, size]
           : filters.sizes.filter((s) => s !== size)
     }));
+  };
+
+  const handleApplyFilters = () => {
+    // Убедимся, что минимальная цена не больше максимальной
+    const minPrice = Math.min(parseInt(minPriceInput), parseInt(maxPriceInput));
+    const maxPrice = Math.max(parseInt(minPriceInput), parseInt(maxPriceInput));
+    
+    setFilters(prevState => ({
+      ...prevState,
+      priceRange: [minPrice, maxPrice] as [number, number],
+    }));
+    setIsFiltersApplied(true);
   };
 
   return (
@@ -53,9 +115,10 @@ const ProductFilters = () => {
               <SelectValue placeholder="Выберите возраст" />
             </SelectTrigger>
             <SelectContent>
-              {options.ages.map(age => {
-                return <SelectItem value={age}>{age}</SelectItem>
-              })}
+              <SelectItem value="all">Все возрасты</SelectItem>
+              {options.ages.map(age => (
+                <SelectItem key={age} value={age}>{age}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -70,9 +133,10 @@ const ProductFilters = () => {
               <SelectValue placeholder="Выберите сезон" />
             </SelectTrigger>
             <SelectContent>
-              {options.seasons.map(season => {
-                return <SelectItem value={season}>{season}</SelectItem>
-              })}
+              <SelectItem value="all">Все сезоны</SelectItem>
+              {options.seasons.map(season => (
+                <SelectItem key={season} value={season}>{season}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -80,11 +144,31 @@ const ProductFilters = () => {
         {/* Price Range Filter */}
         <div className="w-full md:w-1/4">
           <label className="block text-sm font-medium mb-1 text-gray-700">
-            Цена: {filters.priceRange[0]} ₽ - {filters.priceRange[1]} ₽
+            Цена
           </label>
+          <div className="flex gap-2 mb-2">
+            <Input
+              type="number"
+              value={minPriceInput}
+              onChange={handleMinPriceInput}
+              min={options.priceRange[0]}
+              max={filters.priceRange[1]}
+              placeholder="От"
+              className="w-1/2"
+            />
+            <Input
+              type="number"
+              value={maxPriceInput}
+              onChange={handleMaxPriceInput}
+              min={filters.priceRange[0]}
+              max={options.priceRange[1]}
+              placeholder="До"
+              className="w-1/2"
+            />
+          </div>
           <Slider
-            value={[options.priceRange[0], options.priceRange[1]]}
-            max={options.priceRange[0]}
+            value={[filters.priceRange[0], filters.priceRange[1]]}
+            max={options.priceRange[1]}
             min={options.priceRange[0]}
             step={100}
             onValueChange={handlePriceChange}
@@ -115,6 +199,13 @@ const ProductFilters = () => {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Apply Filters Button */}
+      <div className="mt-4 flex justify-end">
+        <Button onClick={handleApplyFilters} className="bg-pink-600 hover:bg-pink-700 text-white">
+          Применить фильтры
+        </Button>
       </div>
     </div>
   );
