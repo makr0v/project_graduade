@@ -1,4 +1,4 @@
-import React, {FC, useState} from "react";
+import React, {FC, useState, useEffect} from "react";
 import {
   ChevronDown,
   Grid,
@@ -19,56 +19,87 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuLabel,
 } from "./ui/dropdown-menu";
 import {useCatalog} from "@/context/CatalogContext.tsx";
+import {API_URL} from "@/config";
+import { Product } from "@/entities";
 
 type Props = {
   logoText?: string;
-  onSearchSubmit?: (searchTerm: string) => void;
   isLoggedIn?: boolean;
 }
 
 const Header: FC<Props> = ({
   logoText = "Детский Гардероб",
-  onSearchSubmit = () => {},
   isLoggedIn = false,
 }) => {
   const { totalItems } = useCart();
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [showResults, setShowResults] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
-  const catalog = useCatalog()
+  const catalog = useCatalog();
+
+  // Поиск товаров при вводе
+  useEffect(() => {
+    const searchProducts = async () => {
+      if (!searchTerm.trim()) {
+        setSearchResults([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/v1/products`);
+        const data = await response.json();
+        const filtered = data.products.filter((product: Product) => 
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.material?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.season?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.age?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setSearchResults(filtered.slice(0, 5)); // Показываем только первые 5 результатов
+      } catch (error) {
+        console.error('Error searching products:', error);
+      }
+    };
+
+    const timer = setTimeout(searchProducts, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearchSubmit(searchTerm);
-  };
-
-  const handleCartClick = () => {
-    setIsCartOpen(true);
-  };
-
-  const handleProfileClick = () => {
-    setIsProfileOpen(true);
-  };
-
-  const handleLogout = () => {
-    // In a real app, you would call your logout API here
-    setIsProfileOpen(false);
-    navigate("/");
+    if (searchTerm.trim()) {
+      setShowResults(false);
+      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+    }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    if (e.target.value === "") {
-      onSearchSubmit("");
+    const value = e.target.value;
+    setSearchTerm(value);
+    setShowResults(true);
+    if (!value.trim()) {
+      setShowResults(false);
     }
   };
+
+  // Закрываем результаты при клике вне поиска
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const searchContainer = document.getElementById('search-container');
+      if (searchContainer && !searchContainer.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <>
@@ -113,25 +144,16 @@ const Header: FC<Props> = ({
                 <DropdownMenuLabel>Категории</DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
-                {catalog.categories.map(c => {
-                  return <DropdownMenuSub key={c.id}>
-                    <DropdownMenuSubTrigger>
-                      <Shirt className="h-4 w-4 mr-2" />
-                      <span>{c.name}</span>
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent className="w-48">
-                      <DropdownMenuItem
-                          onClick={() => navigate(`/category/${c.slug}`)}
-                      >
-                        {c.name}
-                      </DropdownMenuItem>
-{/*
-                      <DropdownMenuSeparator />
-*/}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
+                {catalog.categories.map(c => (
+                  <DropdownMenuItem
+                    key={c.id}
+                    onClick={() => navigate(`/category/${c.slug}`)}
+                  >
+                    <Shirt className="h-4 w-4 mr-2" />
+                    <span>{c.name}</span>
+                  </DropdownMenuItem>
+                ))}
 
-                })}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate("/catalog")}>
                   <Grid className="h-4 w-4 mr-2" />
@@ -142,28 +164,74 @@ const Header: FC<Props> = ({
           </div>
 
           {/* Search */}
-          <form
-            onSubmit={handleSearchSubmit}
-            className="hidden md:flex flex-1 max-w-md mx-4"
-          >
-            <div className="relative w-full">
-              <Input
-                type="text"
-                placeholder="Поиск детской одежды..."
-                className="pr-10"
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
-              <Button
-                type="submit"
-                size="icon"
-                variant="ghost"
-                className="absolute right-0 top-0"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-          </form>
+          <div className="hidden md:flex flex-1 max-w-md mx-4" id="search-container">
+            <form onSubmit={handleSearchSubmit} className="w-full relative">
+              <div className="relative w-full">
+                <Input
+                  type="text"
+                  placeholder="Поиск детской одежды..."
+                  className="pr-10"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  variant="ghost"
+                  className="absolute right-0 top-0"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Выпадающий список результатов */}
+              {showResults && searchTerm.trim() && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg border shadow-lg z-50 max-h-[400px] overflow-y-auto">
+                  {searchResults.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500">
+                      Ничего не найдено
+                    </div>
+                  ) : (
+                    <>
+                      {searchResults.map((product) => (
+                        <div
+                          key={product.id}
+                          className="p-2 hover:bg-gray-50 cursor-pointer flex items-center gap-2"
+                          onClick={() => {
+                            navigate(`/product/${product.slug}`);
+                            setSearchTerm("");
+                            setShowResults(false);
+                          }}
+                        >
+                          <img 
+                            src={product.image} 
+                            alt={product.name} 
+                            className="w-10 h-10 object-cover rounded"
+                          />
+                          <div>
+                            <div className="font-medium">{product.name}</div>
+                            <div className="text-sm text-gray-500">
+                              {product.price} ₽
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div
+                        className="p-2 text-center text-blue-600 hover:bg-gray-50 cursor-pointer border-t"
+                        onClick={() => {
+                          navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+                          setSearchTerm("");
+                          setShowResults(false);
+                        }}
+                      >
+                        Показать все результаты
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </form>
+          </div>
 
           {/* Navigation */}
           <div className="flex items-center space-x-4">
@@ -171,7 +239,7 @@ const Header: FC<Props> = ({
             <Button
               variant="ghost"
               size="icon"
-              onClick={handleCartClick}
+              onClick={() => setIsCartOpen(true)}
               className="relative"
             >
               <ShoppingCart className="h-5 w-5" />
@@ -183,16 +251,16 @@ const Header: FC<Props> = ({
             </Button>
 
             {/* User Profile */}
-            <Button variant="ghost" size="icon" onClick={handleProfileClick}>
+            <Button variant="ghost" size="icon" onClick={() => setIsProfileOpen(true)}>
               <User className="h-5 w-5" />
             </Button>
           </div>
         </div>
 
-        {/* Mobile Search and Categories */}
+        {/* Mobile Search */}
         <div className="md:hidden px-4 pb-3">
-          <form onSubmit={handleSearchSubmit} className="flex w-full mb-3">
-            <div className="relative w-full">
+          <div className="relative w-full mb-2" id="mobile-search-container">
+            <form onSubmit={handleSearchSubmit} className="w-full">
               <Input
                 type="text"
                 placeholder="Поиск детской одежды..."
@@ -208,8 +276,55 @@ const Header: FC<Props> = ({
               >
                 <Search className="h-4 w-4" />
               </Button>
-            </div>
-          </form>
+            </form>
+
+            {/* Мобильный выпадающий список результатов */}
+            {showResults && searchTerm.trim() && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg border shadow-lg z-50 max-h-[400px] overflow-y-auto">
+                {searchResults.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">
+                    Ничего не найдено
+                  </div>
+                ) : (
+                  <>
+                    {searchResults.map((product) => (
+                      <div
+                        key={product.id}
+                        className="p-2 hover:bg-gray-50 cursor-pointer flex items-center gap-2"
+                        onClick={() => {
+                          navigate(`/product/${product.slug}`);
+                          setSearchTerm("");
+                          setShowResults(false);
+                        }}
+                      >
+                        <img 
+                          src={product.image} 
+                          alt={product.name} 
+                          className="w-10 h-10 object-cover rounded"
+                        />
+                        <div>
+                          <div className="font-medium">{product.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {product.price} ₽
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div
+                      className="p-2 text-center text-blue-600 hover:bg-gray-50 cursor-pointer border-t"
+                      onClick={() => {
+                        navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+                        setSearchTerm("");
+                        setShowResults(false);
+                      }}
+                    >
+                      Показать все результаты
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Mobile Catalog Button */}
           <Button
@@ -238,7 +353,10 @@ const Header: FC<Props> = ({
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
         isLoggedIn={isLoggedIn}
-        onLogout={handleLogout}
+        onLogout={() => {
+          setIsProfileOpen(false);
+          navigate("/");
+        }}
       />
     </>
   );

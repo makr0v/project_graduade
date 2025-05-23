@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Facebook,
   Instagram,
@@ -14,12 +14,28 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { useFilters } from "../context/FilterContext";
+import { API_URL } from "@/config";
+
+interface Group {
+  id: number;
+  name: string;
+  slug: string;
+}
 
 const Footer = () => {
   const navigate = useNavigate();
   const { resetFilters } = useFilters();
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [categories, setCategories] = useState<Group[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/v1/groups?variant=category`)
+      .then(res => res.json())
+      .then(data => {
+        setCategories(data.groups.slice(0, 4));
+      });
+  }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,12 +45,12 @@ const Footer = () => {
       setTimeout(() => setSubscribed(false), 3000);
     }
   };
+  
   const handleViewCategory = (e: React.MouseEvent, slug: string) => {
     e.preventDefault()
     resetFilters()
     navigate(`/category/${slug}`)
   }
-
 
   return (
     <footer className="w-full bg-slate-100 py-10">
@@ -47,82 +63,23 @@ const Footer = () => {
             <p className="text-slate-600">
               Стильная и качественная одежда для детей всех возрастов
             </p>
-            <div className="flex space-x-4">
-              <a
-                href="#"
-                className="text-slate-600 hover:text-pink-600 transition-colors"
-              >
-                <Facebook size={20} />
-              </a>
-              <a
-                href="#"
-                className="text-slate-600 hover:text-pink-600 transition-colors"
-              >
-                <Instagram size={20} />
-              </a>
-              <a
-                href="#"
-                className="text-slate-600 hover:text-pink-600 transition-colors"
-              >
-                <Twitter size={20} />
-              </a>
-              <a
-                href="#"
-                className="text-slate-600 hover:text-pink-600 transition-colors"
-              >
-                <Youtube size={20} />
-              </a>
-            </div>
+            
           </div>
 
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-slate-900">Категории</h3>
             <ul className="space-y-2">
-              <li>
-                <a
-                  href="/category/babies"
-                  onClick={(e) => handleViewCategory(e, 'babies')}
-                  className="text-slate-600 hover:text-pink-600 transition-colors"
-                >
-                  Для малышей
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/category/girls"
-                  onClick={(e) => handleViewCategory(e, 'girls')}
-                  className="text-slate-600 hover:text-pink-600 transition-colors"
-                >
-                  Для девочек
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/category/boys"
-                  onClick={(e) => handleViewCategory(e, 'boys')}
-                  className="text-slate-600 hover:text-pink-600 transition-colors"
-                >
-                  Для мальчиков
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/category/school"
-                  onClick={(e) => handleViewCategory(e, 'school')}
-                  className="text-slate-600 hover:text-pink-600 transition-colors"
-                >
-                  Школьная форма
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/category/summer"
-                  onClick={(e) => handleViewCategory(e, 'summer')}
-                  className="text-slate-600 hover:text-pink-600 transition-colors"
-                >
-                  Летняя коллекция
-                </a>
-              </li>
+              {categories.map(category => (
+                <li key={category.id}>
+                  <a
+                    href={`/category/${category.slug}`}
+                    onClick={(e) => handleViewCategory(e, category.slug)}
+                    className="text-slate-600 hover:text-pink-600 transition-colors"
+                  >
+                    {category.name}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 

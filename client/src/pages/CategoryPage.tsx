@@ -6,49 +6,59 @@ import ProductGrid from "../components/ProductGrid";
 import { useFilters } from "../context/FilterContext";
 import { Button } from "../components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import {useCatalog} from "@/context/CatalogContext.tsx";
-import {Group} from "@/entities";
+import {API_URL} from "@/config";
+import {Group, Product, mapServerProduct, GroupVariant} from "@/entities";
+
+interface CategoryResponse {
+  id: number;
+  name: string;
+  description: string;
+  image: string;
+  slug: string;
+  variant: string;
+  products: any[];
+}
 
 const CategoryPage: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
   const { setFilters, resetFilters } = useFilters();
-  const catalog = useCatalog();
-  const [category, setCategory] = useState<Group>()
-
+  const [category, setCategory] = useState<Group>();
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    const expectedCategory = catalog.categories.find(i => i.slug === categoryId)
-    if (!categoryId || !expectedCategory) {
+    if (!categoryId) {
       navigate("/");
       return;
     }
 
-    setCategory(expectedCategory)
+    // Fetch category data and products
+    fetch(`${API_URL}/v1/groups/slug/${categoryId}?variant=category`)
+      .then(res => res.json())
+      .then((data: CategoryResponse) => {
+        setCategory({
+          id: data.id,
+          name: data.name,
+          description: data.description,
+          image: data.image,
+          slug: data.slug,
+          variant: data.variant as GroupVariant,
+          products: []
+        });
 
-    // Reset filters first to clear any previous filters
-    resetFilters();
+        // Map server products to client format
+        const mappedProducts = data.products.map(mapServerProduct);
+        setProducts(mappedProducts);
 
-    // Apply filters based on category
-    const newFilters: Record<string, any> = {};
+        // Reset filters first to clear any previous filters
+        resetFilters();
+      })
+      .catch(err => {
+        console.error("Error fetching category:", err);
+        navigate("/");
+      });
 
- /*   if (categoryInfo.filterAge) {
-      newFilters.age = categoryInfo.filterAge;
-    }
-
-    if (categoryInfo.filterSeason) {
-      newFilters.season = categoryInfo.filterSeason;
-    }
-
-    if (categoryInfo.filterType) {
-      newFilters.type = categoryInfo.filterType;
-    }*/
-/*
-    // Apply the new filters
-    setFilters(newFilters as any);
-
-    console.log("Category page filters applied:", newFilters);*/
-  }, [categoryId, navigate]);
+  }, [categoryId, navigate, resetFilters]);
 
   if (!category) {
     return null;
@@ -62,7 +72,7 @@ const CategoryPage: React.FC = () => {
         {/* Hero Banner */}
         <div className="relative h-[300px] md:h-[400px] w-full overflow-hidden">
           <img
-            src={category.image}
+            src={category.image || '/placeholder.jpg'} 
             alt={category.name}
             className="w-full h-full object-cover"
           />
@@ -90,7 +100,7 @@ const CategoryPage: React.FC = () => {
           <ProductGrid
             title={`Товары в категории "${category.name}"`}
             showFilters={true}
-            filterByCategoryId={category.id}
+            products={products}
           />
         </div>
       </main>
