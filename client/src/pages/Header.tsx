@@ -10,7 +10,7 @@ type Props = {
   isLoggedIn?: boolean;
 }
 
-const Header: FC<Props> = ({
+export const Header: FC<Props> = ({
   logoText = "Детский Гардероб",
   isLoggedIn = false,
 }) => {
@@ -35,5 +35,5 @@ const Header: FC<Props> = ({
     }
   };
 
-  // ... rest of the existing code ...
-} 
+  return null; // Replace this with your actual JSX return
+}; 
